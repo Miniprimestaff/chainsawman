@@ -2,7 +2,7 @@ local aukit = require("aukit")
 local austream = shell.resolveProgram("austream")
 
 -- Téléchargement du fichier de la liste de lecture
-local playlistURL = "https://raw.githubusercontent.com/Dartsgame974/eonmodded/main/musiclist.json"
+local playlistURL = "https://raw.githubusercontent.com/Miniprimestaff/music-cc/main/program/playlist.json"
 local response = http.get(playlistURL)
 if response then
   local playlistData = response.readAll()
