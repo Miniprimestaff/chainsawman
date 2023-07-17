@@ -13,22 +13,34 @@ if response then
   if success and type(playlist) == "table" then
     -- Création de la liste sélectionnable des musiques
     local musicList = {}
-    for _, entry in ipairs(playlist) do
-      table.insert(musicList, entry.title)
+    for i, entry in ipairs(playlist) do
+      local title = entry.title
+      table.insert(musicList, {index = i, title = title})
     end
 
     -- Variables de contrôle
     local isPaused = false
     local currentMusicTitle = ""
 
-    -- Fonction pour lire une musique
-    local function playMusic(title, musicURL)
-      -- Lecture de la musique en utilisant AUStream
-      shell.run(austream, musicURL)
-      
+    -- Affichage de la liste des musiques sélectionnables
+    print("Liste des musiques :")
+    for _, music in ipairs(musicList) do
+      print(music.index .. ". " .. music.title)
+    end
+
+    -- Demande à l'utilisateur de sélectionner une musique
+    local selectedMusicIndex = tonumber(read())
+    if selectedMusicIndex and selectedMusicIndex >= 1 and selectedMusicIndex <= #musicList then
+      local selectedMusic = playlist[musicList[selectedMusicIndex].index]
+      local selectedTitle = selectedMusic.title
+      local selectedURL = selectedMusic.link
+
       -- Mise à jour du titre de la musique en cours
-      currentMusicTitle = title
+      currentMusicTitle = selectedTitle
       print("Lecture de la musique : " .. currentMusicTitle)
+
+      -- Lecture de la musique sélectionnée
+      shell.run(austream, selectedURL)
       
       -- Attente jusqu'à la fin de la musique ou interruption de l'utilisateur
       while true do
@@ -40,23 +52,6 @@ if response then
         end
         sleep(1)
       end
-    end
-
-    -- Affichage de la liste des musiques sélectionnables
-    print("Liste des musiques :")
-    for i, title in ipairs(musicList) do
-      print(i .. ". " .. title)
-    end
-
-    -- Demande à l'utilisateur de sélectionner une musique
-    local selectedMusicIndex = tonumber(read())
-    if selectedMusicIndex and selectedMusicIndex >= 1 and selectedMusicIndex <= #musicList then
-      local selectedMusic = playlist[selectedMusicIndex]
-      local selectedTitle = selectedMusic.title
-      local selectedURL = selectedMusic.link
-      
-      -- Lecture de la musique sélectionnée
-      playMusic(selectedTitle, selectedURL)
     else
       print("Index de musique invalide.")
     end
