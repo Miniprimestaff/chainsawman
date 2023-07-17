@@ -38,7 +38,7 @@ if response then
     -- Affichage initial de la liste des musiques
     printMusicList()
 
-    -- Boucle pour gérer le défilement de la liste
+    -- Boucle pour gérer le défilement de la liste et la saisie des numéros de musique
     while true do
       local command = read()
 
