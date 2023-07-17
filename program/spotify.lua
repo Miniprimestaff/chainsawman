@@ -1,6 +1,6 @@
 local aukit = require("aukit")
 local austream = shell.resolveProgram("austream")
-local button = require("button")
+local buttonApi = require("button")
 
 -- Téléchargement du fichier de la liste de lecture
 local playlistURL = "https://raw.githubusercontent.com/Miniprimestaff/music-cc/main/program/playlist.json"
@@ -21,17 +21,17 @@ if response then
     -- Création des boutons pour chaque musique
     local buttons = {}
     for i, music in ipairs(musicList) do
-      local button = button.create(music.title)
-      button:setPos(1, i)
-      button:setSize(10, 1)
-      button:setColor(colors.red)
+      local btn = buttonApi.create(music.title)
+      btn:setPos(1, i)
+      btn:setSize(10, 1)
+      btn:setColor(colors.red)
 
       -- Callback lorsque le bouton est cliqué
-      button:onClick(function()
+      btn:onClick(function()
         playMusic(music.title, music.link)
       end)
 
-      table.insert(buttons, button)
+      table.insert(buttons, btn)
     end
 
     -- Fonction pour lire une musique
@@ -53,7 +53,7 @@ if response then
     end
 
     -- Affichage initial de la liste des musiques
-    button.await(buttons)
+    buttonApi.await(buttons)
 
   else
     print("Erreur de parsing du fichier de la liste de lecture.")
