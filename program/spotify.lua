@@ -1,6 +1,8 @@
 local aukit = require("aukit")
 local austream = shell.resolveProgram("austream")
+local term = require("term")
 
+local _, h = term.getSize()
 
 -- Téléchargement du fichier de la liste de lecture
 local playlistURL = "https://raw.githubusercontent.com/Miniprimestaff/music-cc/main/program/playlist.json"
