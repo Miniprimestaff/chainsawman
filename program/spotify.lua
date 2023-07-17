@@ -17,19 +17,26 @@ if response then
       table.insert(musicList, entry.title)
     end
 
+    -- Variables de contrôle
+    local isPaused = false
+    local currentMusicTitle = ""
+
     -- Fonction pour lire une musique
     local function playMusic(title, musicURL)
       -- Lecture de la musique en utilisant AUStream
       shell.run(austream, musicURL)
       
-      -- Affichage du titre de la musique en cours de lecture
-      print("Lecture de la musique : " .. title)
+      -- Mise à jour du titre de la musique en cours
+      currentMusicTitle = title
+      print("Lecture de la musique : " .. currentMusicTitle)
       
-      -- Attente jusqu'à la fin de la musique
+      -- Attente jusqu'à la fin de la musique ou interruption de l'utilisateur
       while true do
-        local status, result = pcall(aukit.isPlaying)
-        if not status or not result then
-          break
+        if not isPaused then
+          local status, result = pcall(aukit.isPlaying)
+          if not status or not result then
+            break
+          end
         end
         sleep(1)
       end
@@ -52,6 +59,25 @@ if response then
       playMusic(selectedTitle, selectedURL)
     else
       print("Index de musique invalide.")
+    end
+
+    -- Boucle principale pour gérer les commandes utilisateur
+    while true do
+      local command = read()
+      if command == "pause" then
+        -- Mettre en pause la musique
+        isPaused = true
+        print("Musique en pause : " .. currentMusicTitle)
+      elseif command == "resume" then
+        -- Reprendre la lecture de la musique
+        isPaused = false
+        print("Reprise de la musique : " .. currentMusicTitle)
+      elseif command == "stop" then
+        -- Interruption de l'utilisateur
+        break
+      else
+        print("Commande non valide.")
+      end
     end
   else
     print("Erreur de parsing du fichier de la liste de lecture.")
