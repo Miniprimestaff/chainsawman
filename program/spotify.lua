@@ -24,7 +24,8 @@ if response then
     -- Création de la liste défilable des musiques
     local musicListFrame = main:addScrollableFrame():setPosition(1, 1):setSize(30, 10)
     for i, title in ipairs(musicList) do
-      musicListFrame:addButton(title):setOnClick(function()
+      local button = musicListFrame:addButton(title)
+      button:setOnClick(function()
         local selectedMusic = playlist[i]
         local selectedTitle = selectedMusic.title
         local selectedURL = selectedMusic.link
