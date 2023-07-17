@@ -41,7 +41,7 @@ if response then
         term.setCursorPos(1, 3)
         term.write(string.rep(" ", term.getSize()))
         term.setCursorPos((term.getSize() - 7) / 2 + 1, 3)
-        term.write("Spogitfy")
+        term.write("Spotifo")
         term.setCursorPos(1, 4)
         term.write(string.rep(string.char(143), term.getSize()))
 
