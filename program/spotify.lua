@@ -52,8 +52,16 @@ if response then
       end
     end
 
-    -- Affichage initial de la liste des musiques
-    buttonApi.await(buttons)
+    -- Attente de l'événement de clic sur les boutons
+    while true do
+      local clickedButton = buttonApi.await(buttons)
+      
+      if clickedButton then
+        -- Récupération de la musique associée au bouton cliqué
+        local music = musicList[clickedButton:getPos().y]
+        playMusic(music.title, music.link)
+      end
+    end
 
   else
     print("Erreur de parsing du fichier de la liste de lecture.")
