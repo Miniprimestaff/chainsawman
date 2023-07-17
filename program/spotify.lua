@@ -1,5 +1,6 @@
 local aukit = require("aukit")
 local austream = shell.resolveProgram("austream")
+local basalt = require("basalt")
 
 -- Téléchargement du fichier de la liste de lecture
 local playlistURL = "https://raw.githubusercontent.com/Miniprimestaff/music-cc/main/program/playlist.json"
@@ -17,43 +18,19 @@ if response then
       table.insert(musicList, entry.title)
     end
 
-    -- Variables de contrôle
-    local selectedIndex = 1
+    -- Création de la fenêtre de l'interface utilisateur
+    local main = basalt.createFrame()
 
-    -- Fonction pour afficher la liste des musiques
-    local function printMusicList()
-      term.clear()
-      print("Liste des musiques :")
-      for i, title in ipairs(musicList) do
-        if i == selectedIndex then
-          print("> " .. i .. ". " .. title)
-        else
-          print("  " .. i .. ". " .. title)
-        end
-      end
-    end
-
-    -- Affichage initial de la liste des musiques
-    printMusicList()
-
-    -- Boucle principale pour gérer les commandes utilisateur
-    while true do
-      local _, keyCode = os.pullEvent("key")
-
-      if keyCode == keys.up and selectedIndex > 1 then
-        -- Défilement vers le haut
-        selectedIndex = selectedIndex - 1
-      elseif keyCode == keys.down and selectedIndex < #musicList then
-        -- Défilement vers le bas
-        selectedIndex = selectedIndex + 1
-      elseif keyCode == keys.enter then
-        -- Lecture de la musique sélectionnée
-        local selectedMusic = playlist[selectedIndex]
+    -- Création de la liste défilable des musiques
+    local musicListFrame = main:addScrollableFrame():setPosition(1, 1):setSize(30, 10)
+    for i, title in ipairs(musicList) do
+      musicListFrame:addButton(title):setOnClick(function()
+        local selectedMusic = playlist[i]
         local selectedTitle = selectedMusic.title
         local selectedURL = selectedMusic.link
 
         -- Affichage du titre de la musique en cours de lecture
-        term.clear()
+        main:clear()
         print("Lecture de la musique : " .. selectedTitle)
 
         -- Lecture de la musique en utilisant AUStream
@@ -69,14 +46,22 @@ if response then
         end
 
         -- Affichage de la liste des musiques après la fin de la lecture
-        printMusicList()
-      elseif keyCode == keys.q then
+        main:clear()
+      end)
+    end
+
+    -- Affichage initial de la liste des musiques
+    main:draw()
+
+    -- Boucle principale pour gérer les événements utilisateur
+    while true do
+      local event, key = os.pullEvent("key")
+      if event == "key" and key == keys.q then
         -- Interruption de l'utilisateur
         break
       end
-
-      -- Affichage mis à jour de la liste des musiques
-      printMusicList()
+      main:onEvent(event, key)
+      main:draw()
     end
   else
     print("Erreur de parsing du fichier de la liste de lecture.")
