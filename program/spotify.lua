@@ -24,7 +24,7 @@ if response then
     -- Variables pour le défilement de la liste
     local maxLines = 10 -- Nombre maximal de lignes à afficher
     local startIndex = 1 -- Indice de départ pour afficher les musiques
-    local endIndex = math.min(#musicList, startIndex + maxLines - 1) -- Indice de fin pour afficher les musiques
+    local endIndex = #musicList -- Indice de fin pour afficher les musiques
 
     -- Fonction pour afficher la liste des musiques
     local function printMusicList()
