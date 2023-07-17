@@ -1,6 +1,5 @@
 local aukit = require("aukit")
 local austream = shell.resolveProgram("austream")
-local basalt = require("basalt")
 
 -- Téléchargement du fichier de la liste de lecture
 local playlistURL = "https://raw.githubusercontent.com/Miniprimestaff/music-cc/main/program/playlist.json"
@@ -18,51 +17,88 @@ if response then
       table.insert(musicList, entry.title)
     end
 
-    -- Création de la fenêtre de l'interface utilisateur
-    local main = basalt.createFrame()
+    -- Variables de contrôle
+    local isPaused = false
+    local currentMusicTitle = ""
 
-    -- Création de la liste défilable des musiques
-    local musicListFrame = main:addScrollableFrame():setPosition(1, 1):setSize(30, 10)
-    for i, title in ipairs(musicList) do
-      local button = musicListFrame:addButton(title)
-      button:setOnClick(function()
-        local selectedMusic = playlist[i]
-        local selectedTitle = selectedMusic.title
-        local selectedURL = selectedMusic.link
+    -- Variables pour le défilement de la liste
+    local maxLines = 10 -- Nombre maximal de lignes à afficher
+    local startIndex = 1 -- Indice de départ pour afficher les musiques
+    local endIndex = math.min(#musicList, startIndex + maxLines - 1) -- Indice de fin pour afficher les musiques
 
-        -- Affichage du titre de la musique en cours de lecture
-        main:clear()
-        print("Lecture de la musique : " .. selectedTitle)
-
-        -- Lecture de la musique en utilisant AUStream
-        shell.run(austream, selectedURL)
-
-        -- Attente jusqu'à la fin de la musique
-        while true do
-          local status, result = pcall(aukit.isPlaying)
-          if not status or not result then
-            break
-          end
-          sleep(1)
-        end
-
-        -- Affichage de la liste des musiques après la fin de la lecture
-        main:clear()
-      end)
+    -- Fonction pour afficher la liste des musiques
+    local function printMusicList()
+      term.clear()
+      print("Liste des musiques :")
+      for i = startIndex, endIndex do
+        print(i .. ". " .. musicList[i])
+      end
     end
 
     -- Affichage initial de la liste des musiques
-    main:draw()
+    printMusicList()
 
-    -- Boucle principale pour gérer les événements utilisateur
+    -- Boucle principale pour gérer les commandes utilisateur
     while true do
-      local event, key = os.pullEvent("key")
-      if event == "key" and key == keys.q then
+      local command = read()
+
+      if command == "up" then
+        -- Défilement vers le haut
+        if startIndex > 1 then
+          startIndex = startIndex - 1
+          endIndex = endIndex - 1
+        end
+      elseif command == "down" then
+        -- Défilement vers le bas
+        if endIndex < #musicList then
+          startIndex = startIndex + 1
+          endIndex = endIndex + 1
+        end
+      elseif tonumber(command) then
+        -- Sélection d'une musique à jouer
+        local selectedIndex = tonumber(command)
+        if selectedIndex >= startIndex and selectedIndex <= endIndex then
+          local selectedMusic = playlist[selectedIndex]
+          local selectedTitle = selectedMusic.title
+          local selectedURL = selectedMusic.link
+
+          -- Mise à jour du titre de la musique en cours
+          currentMusicTitle = selectedTitle
+          print("Lecture de la musique : " .. currentMusicTitle)
+
+          -- Lecture de la musique sélectionnée
+          shell.run(austream, selectedURL)
+
+          -- Attente jusqu'à la fin de la musique ou interruption de l'utilisateur
+          while true do
+            if not isPaused then
+              local status, result = pcall(aukit.isPlaying)
+              if not status or not result then
+                break
+              end
+            end
+            sleep(1)
+          end
+        else
+          print("Index de musique invalide.")
+        end
+      elseif command == "pause" then
+        -- Mettre en pause la musique en cours
+        isPaused = true
+        print("Musique en pause : " .. currentMusicTitle)
+      elseif command == "resume" then
+        -- Reprendre la lecture de la musique en cours
+        isPaused = false
+        print("Reprise de la musique : " .. currentMusicTitle)
+      elseif command == "stop" then
         -- Interruption de l'utilisateur
         break
+      else
+        print("Commande non valide.")
       end
-      main:onEvent(event, key)
-      main:draw()
+
+      -- Affichage mis à jour de la liste des musiques
+      printMusicList()
     end
   else
     print("Erreur de parsing du fichier de la liste de lecture.")
