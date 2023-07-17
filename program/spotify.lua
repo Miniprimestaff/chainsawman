@@ -17,32 +17,22 @@ if response then
       table.insert(musicList, entry.title)
     end
 
-    -- Variable de contrôle pour la pause
-    local isPaused = false
-    -- Variable pour stocker le titre de la musique en cours de lecture
-    local currentTitle = ""
-
     -- Fonction pour lire une musique
     local function playMusic(title, musicURL)
       -- Lecture de la musique en utilisant AUStream
       shell.run(austream, musicURL)
       
       -- Affichage du titre de la musique en cours de lecture
-      currentTitle = title
-      print("Lecture de la musique : " .. currentTitle)
+      print("Lecture de la musique : " .. title)
       
-      -- Attente jusqu'à la fin de la musique ou interruption de l'utilisateur
+      -- Attente jusqu'à la fin de la musique
       while true do
-        if not isPaused then
-          local status, result = pcall(aukit.isPlaying)
-          if not status or not result then
-            break
-          end
+        local status, result = pcall(aukit.isPlaying)
+        if not status or not result then
+          break
         end
         sleep(1)
       end
-      -- Réinitialisation du titre une fois la musique terminée
-      currentTitle = ""
     end
 
     -- Affichage de la liste des musiques sélectionnables
@@ -59,32 +49,7 @@ if response then
       local selectedURL = selectedMusic.link
       
       -- Lecture de la musique sélectionnée
-      local musicThread = parallel.create(function()
-        playMusic(selectedTitle, selectedURL)
-      end)
-
-      -- Boucle principale pour gérer les commandes utilisateur
-      while true do
-        local command = read()
-        if command == "pause" then
-          -- Mettre en pause la musique
-          isPaused = true
-          print("Musique en pause.")
-        elseif command == "resume" then
-          -- Reprendre la lecture de la musique
-          isPaused = false
-          print("Reprise de la musique.")
-        elseif command == "stop" then
-          -- Interruption de l'utilisateur
-          parallel.waitForAny(musicThread, function() end) -- Attendre la fin de la musique
-          break
-        elseif command == "nowplaying" then
-          -- Afficher le titre de la musique en cours de lecture
-          print("En train de jouer : " .. currentTitle)
-        else
-          print("Commande non valide.")
-        end
-      end
+      playMusic(selectedTitle, selectedURL)
     else
       print("Index de musique invalide.")
     end
