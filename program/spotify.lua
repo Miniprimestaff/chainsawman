@@ -18,20 +18,18 @@ if response then
     end
 
     -- Variables de contrôle
-    local isPaused = false
-    local currentMusicTitle = ""
-
-    -- Variables pour le défilement de la liste
-    local maxLines = 10 -- Nombre maximal de lignes à afficher
-    local startIndex = 1 -- Indice de départ pour afficher les musiques
-    local endIndex = math.min(#musicList, startIndex + maxLines - 1) -- Indice de fin pour afficher les musiques
+    local selectedIndex = 1
 
     -- Fonction pour afficher la liste des musiques
     local function printMusicList()
       term.clear()
       print("Liste des musiques :")
-      for i = startIndex, endIndex do
-        print(i .. ". " .. musicList[i])
+      for i, title in ipairs(musicList) do
+        if i == selectedIndex then
+          print("> " .. i .. ". " .. title)
+        else
+          print("  " .. i .. ". " .. title)
+        end
       end
     end
 
@@ -40,61 +38,41 @@ if response then
 
     -- Boucle principale pour gérer les commandes utilisateur
     while true do
-      local command = read()
+      local _, keyCode = os.pullEvent("key")
 
-      if command == "up" then
+      if keyCode == keys.up and selectedIndex > 1 then
         -- Défilement vers le haut
-        if startIndex > 1 then
-          startIndex = startIndex - 1
-          endIndex = endIndex - 1
-        end
-      elseif command == "down" then
+        selectedIndex = selectedIndex - 1
+      elseif keyCode == keys.down and selectedIndex < #musicList then
         -- Défilement vers le bas
-        if endIndex < #musicList then
-          startIndex = startIndex + 1
-          endIndex = endIndex + 1
-        end
-      elseif tonumber(command) then
-        -- Sélection d'une musique à jouer
-        local selectedIndex = tonumber(command)
-        if selectedIndex >= startIndex and selectedIndex <= endIndex then
-          local selectedMusic = playlist[selectedIndex]
-          local selectedTitle = selectedMusic.title
-          local selectedURL = selectedMusic.link
+        selectedIndex = selectedIndex + 1
+      elseif keyCode == keys.enter then
+        -- Lecture de la musique sélectionnée
+        local selectedMusic = playlist[selectedIndex]
+        local selectedTitle = selectedMusic.title
+        local selectedURL = selectedMusic.link
 
-          -- Mise à jour du titre de la musique en cours
-          currentMusicTitle = selectedTitle
-          print("Lecture de la musique : " .. currentMusicTitle)
+        -- Affichage du titre de la musique en cours de lecture
+        term.clear()
+        print("Lecture de la musique : " .. selectedTitle)
 
-          -- Lecture de la musique sélectionnée
-          shell.run(austream, selectedURL)
+        -- Lecture de la musique en utilisant AUStream
+        shell.run(austream, selectedURL)
 
-          -- Attente jusqu'à la fin de la musique ou interruption de l'utilisateur
-          while true do
-            if not isPaused then
-              local status, result = pcall(aukit.isPlaying)
-              if not status or not result then
-                break
-              end
-            end
-            sleep(1)
+        -- Attente jusqu'à la fin de la musique
+        while true do
+          local status, result = pcall(aukit.isPlaying)
+          if not status or not result then
+            break
           end
-        else
-          print("Index de musique invalide.")
+          sleep(1)
         end
-      elseif command == "pause" then
-        -- Mettre en pause la musique en cours
-        isPaused = true
-        print("Musique en pause : " .. currentMusicTitle)
-      elseif command == "resume" then
-        -- Reprendre la lecture de la musique en cours
-        isPaused = false
-        print("Reprise de la musique : " .. currentMusicTitle)
-      elseif command == "stop" then
+
+        -- Affichage de la liste des musiques après la fin de la lecture
+        printMusicList()
+      elseif keyCode == keys.q then
         -- Interruption de l'utilisateur
         break
-      else
-        print("Commande non valide.")
       end
 
       -- Affichage mis à jour de la liste des musiques
