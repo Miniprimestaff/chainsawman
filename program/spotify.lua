@@ -63,6 +63,10 @@ if response then
 
     -- Boucle principale pour gérer les commandes utilisateur
     while true do
+      term.setCursorPos(1, 2) -- Positionne le curseur au-dessus de la barre de progression
+      term.clearLine() -- Efface la ligne
+      term.write("Musique en cours : " .. currentMusicTitle) -- Affiche le nom de la musique en cours
+
       local command = read()
       if command == "pause" then
         -- Mettre en pause la musique
