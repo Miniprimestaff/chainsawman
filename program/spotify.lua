@@ -27,17 +27,12 @@ if response then
       print("Lecture de la musique : " .. title)
       
       -- Attente jusqu'à la fin de la musique
-      while true do
-        local status, result = pcall(aukit.isPlaying)
-        if not status or not result then
-          break
-        end
+      while aukit.isPlaying() do
         sleep(1)
       end
     end
 
     -- Variables de contrôle
-    local isPaused = false
     local selectedPosition = 1
 
     -- Variables pour le défilement de la liste
