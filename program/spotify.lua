@@ -41,7 +41,7 @@ if response then
         term.setCursorPos(1, 3)
         term.write(string.rep(" ", term.getSize()))
         term.setCursorPos((term.getSize() - 7) / 2 + 1, 3)
-        term.write("Spotifo")
+        term.write("Spogitfy")
         term.setCursorPos(1, 4)
         term.write(string.rep(string.char(143), term.getSize()))
 
@@ -54,10 +54,10 @@ if response then
           local option = musicList[i]
 
           if optionIndex == selectedIndex then
-            term.setTextColor(colors.yellow) -- Couleur pour l'option sélectionnée
+            term.setTextColor(colors.green) -- Couleur pour l'option sélectionnée
             option = option .. " " -- Ajout d'un espace à la fin de l'option
           else
-            term.setTextColor(colors.white) -- Couleur par défaut pour les autres options
+            term.setTextColor(colors.gray) -- Couleur par défaut pour les autres options
           end
 
           print(optionIndex, " [" .. option .. "]")
