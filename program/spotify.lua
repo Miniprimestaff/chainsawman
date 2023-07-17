@@ -1,3 +1,4 @@
+local basalt = require("basalt")
 local aukit = require("aukit")
 local austream = shell.resolveProgram("austream")
 
@@ -17,48 +18,17 @@ if response then
       table.insert(musicList, entry.title)
     end
 
-    -- Variables de contrôle
-    local isPaused = false
-    local currentMusicTitle = ""
+    -- Création de la liste scrollable
+    local scrollableList = basalt.createScrollableFrame()
+    scrollableList:setTitle("Liste des musiques")
 
-    -- Variables pour le défilement de la liste
-    local maxLines = 10 -- Nombre maximal de lignes à afficher
-    local startIndex = 1 -- Indice de départ pour afficher les musiques
-    local endIndex = math.min(#musicList, startIndex + maxLines - 1) -- Indice de fin pour afficher les musiques
+    -- Ajout des musiques à la liste scrollable
+    for index, music in ipairs(musicList) do
+      local button = scrollableList:addButton():setText(music)
 
-    -- Fonction pour afficher la liste des musiques
-    local function printMusicList()
-      term.clear()
-      print("Liste des musiques :")
-      for i = startIndex, endIndex do
-        print(i .. ". " .. musicList[i])
-      end
-    end
-
-    -- Affichage initial de la liste des musiques
-    printMusicList()
-
-    -- Boucle principale pour gérer les commandes utilisateur
-    while true do
-      local command = read()
-
-      if command == "up" then
-        -- Défilement vers le haut
-        if startIndex > 1 then
-          startIndex = startIndex - 1
-          endIndex = endIndex - 1
-        end
-      elseif command == "down" then
-        -- Défilement vers le bas
-        if endIndex < #musicList then
-          startIndex = startIndex + 1
-          endIndex = endIndex + 1
-        end
-      elseif tonumber(command) then
-        -- Sélection d'une musique à jouer
-        local selectedIndex = tonumber(command)
-        if selectedIndex >= startIndex and selectedIndex <= endIndex then
-          local selectedMusic = playlist[selectedIndex]
+      button:onClick(function(self, event, button, x, y)
+        if (event == "mouse_click") and (button == 1) then
+          local selectedMusic = playlist[index]
           local selectedTitle = selectedMusic.title
           local selectedURL = selectedMusic.link
 
@@ -79,27 +49,12 @@ if response then
             end
             sleep(1)
           end
-        else
-          print("Index de musique invalide.")
         end
-      elseif command == "pause" then
-        -- Mettre en pause la musique en cours
-        isPaused = true
-        print("Musique en pause : " .. currentMusicTitle)
-      elseif command == "resume" then
-        -- Reprendre la lecture de la musique en cours
-        isPaused = false
-        print("Reprise de la musique : " .. currentMusicTitle)
-      elseif command == "stop" then
-        -- Interruption de l'utilisateur
-        break
-      else
-        print("Commande non valide.")
-      end
-
-      -- Affichage mis à jour de la liste des musiques
-      printMusicList()
+      end)
     end
+
+    term.clear()
+    scrollableList:draw()
   else
     print("Erreur de parsing du fichier de la liste de lecture.")
   end
