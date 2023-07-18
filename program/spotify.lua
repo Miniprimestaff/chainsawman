@@ -24,6 +24,19 @@ if response then
       local totalPages = math.ceil(totalOptions / itemsPerPage)
       local selectedIndex = 1
 
+      -- Boot Menu
+      term.clear()
+      term.setCursorPos(1, 3)
+      term.setTextColor(colors.green)
+      term.write(string.rep(string.char(143), term.getSize()))
+      term.setCursorPos(1, 4)
+      term.write(string.rep(" ", term.getSize()))
+      term.setCursorPos((term.getSize() - 7) / 2 + 1, 4)
+      term.write("Spotifo")
+      term.setCursorPos(1, 5)
+      term.write(string.rep(string.char(143), term.getSize()))
+      sleep(2) -- Attente de 2 secondes
+
       while true do
         term.clear()
         term.setCursorPos(1, 3)
@@ -56,19 +69,8 @@ if response then
         end
 
         term.setTextColor(colors.white)
-
         local pageText = "Page " .. currentPage .. "/" .. totalPages
-        local pageTextPos
-        if term.isColor() then
-          pageTextPos = (term.getSize() - #pageText) / 2 + 1
-        else
-          pageTextPos = (term.getSize() - #pageText) / 2 + 1
-        end
-
-        if pageTextPos < itemsPerPage + 7 then
-          pageTextPos = itemsPerPage + 7
-        end
-
+        local pageTextPos = (term.getSize() - #pageText) / 2 + 1
         term.setCursorPos(pageTextPos, itemsPerPage + 6)
         term.write(pageText)
 
