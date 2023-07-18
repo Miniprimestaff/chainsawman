@@ -62,7 +62,7 @@ if response then
         if pocket then
           -- Calcul de la position du texte de la page pour les ordinateurs de poche
           pageTextPos = (term.getSize() - #pageText) / 2 + 1
-          term.setCursorPos(pageTextPos, term.getSizeY())
+          term.setCursorPos(pageTextPos, term.getSize())
         else
           -- Calcul de la position du texte de la page pour les autres ordinateurs
           pageTextPos = (term.getSize() - #pageText) / 2 + 1
