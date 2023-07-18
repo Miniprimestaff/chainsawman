@@ -15,9 +15,6 @@ if not fileExists(austreamPath) then
   shell.run("wget", "https://github.com/MCJack123/AUKit/raw/master/austream.lua", austreamPath)
 end
 
--- Chargement des bibliothèques AUKit et AUStream
-os.loadAPI(aukitPath)
-os.loadAPI(austreamPath)
 
 local playlistURL = "https://raw.githubusercontent.com/Miniprimestaff/music-cc/main/program/playlist.json"
 local response = http.get(playlistURL)
