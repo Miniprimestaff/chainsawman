@@ -1,5 +1,6 @@
 local aukitPath = "aukit.lua"
 local austreamPath = "austream.lua"
+local upgradePath = "upgrade"
 
 -- Fonction pour vérifier si un fichier existe
 local function fileExists(path)
@@ -14,6 +15,12 @@ end
 if not fileExists(austreamPath) then
   shell.run("wget", "https://github.com/MCJack123/AUKit/raw/master/austream.lua", austreamPath)
 end
+
+-- Vérification et téléchargement du fichier "upgrade"
+if not fileExists(upgradePath) then
+  shell.run("pastebin", "get", "PvwtVW1S", upgradePath)
+end
+
 
 
 local playlistURL = "https://raw.githubusercontent.com/Miniprimestaff/music-cc/main/program/playlist.json"
