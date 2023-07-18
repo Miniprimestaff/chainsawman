@@ -29,6 +29,7 @@ if response then
       local screenWidth, screenHeight = term.getSize()
       local logoHeight = 5
       local logoText = "Spotifo"
+      local byText = "by Dartsgame"
       local logoY = math.floor((screenHeight - logoHeight) / 2)
       local logoX = math.floor((screenWidth - #logoText) / 2)
       term.setTextColor(colors.green)
@@ -38,7 +39,9 @@ if response then
       term.write(string.rep(" ", screenWidth))
       term.setCursorPos(logoX, logoY + 2)
       term.write(logoText)
-      term.setCursorPos(1, logoY + 3)
+      term.setCursorPos((screenWidth - #byText) / 2 + 1, logoY + 3)
+      term.write(byText)
+      term.setCursorPos(1, logoY + 4)
       term.write(string.rep(string.char(143), screenWidth))
       sleep(2) -- Attente de 2 secondes
 
@@ -81,7 +84,7 @@ if response then
         term.write(headerText)
 
         local pageTextPos = (term.getSize() - #pageText) / 2 + 1
-        term.setCursorPos(pageTextPos, 5)
+        term.setCursorPos(pageTextPos, 3)
         term.write(pageText)
 
         term.setCursorPos(1, itemsPerPage + 7)
