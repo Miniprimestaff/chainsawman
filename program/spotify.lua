@@ -59,17 +59,23 @@ if response then
 
         local pageText = "Page " .. currentPage .. "/" .. totalPages
         local pageTextPos
-        if pocket then
-          -- Calcul de la position du texte de la page pour les ordinateurs de poche
+        if term.isColor() then
           pageTextPos = (term.getSize() - #pageText) / 2 + 1
-          term.setCursorPos(pageTextPos, term.getSize())
         else
-          -- Calcul de la position du texte de la page pour les autres ordinateurs
           pageTextPos = (term.getSize() - #pageText) / 2 + 1
-          term.setCursorPos(pageTextPos, itemsPerPage + 7)
         end
 
+        if pageTextPos < itemsPerPage + 7 then
+          pageTextPos = itemsPerPage + 7
+        end
+
+        term.setCursorPos(pageTextPos, itemsPerPage + 6)
         term.write(pageText)
+
+        term.setCursorPos(1, itemsPerPage + 7)
+        term.write(string.char(17))
+        term.setCursorPos(term.getSize(), itemsPerPage + 7)
+        term.write(string.char(16))
 
         local _, key = os.pullEvent("key")
 
