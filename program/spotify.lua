@@ -1,44 +1,18 @@
+local aukitPath = "aukit.lua"
+local austreamPath = "austream.lua"
+
 -- Fonction pour vérifier si un fichier existe
 local function fileExists(path)
   return fs.exists(path) and not fs.isDir(path)
 end
 
--- Vérification de la présence des fichiers aukit.lua et austream.lua
-local aukitPath = "aukit.lua"
-local austreamPath = "austream.lua"
-
+-- Vérification et téléchargement des fichiers AUKit et AUStream
 if not fileExists(aukitPath) then
-  print("Téléchargement de AUKit...")
-  local aukitURL = "https://github.com/MCJack123/AUKit/raw/master/aukit.lua"
-  local aukitResponse = http.get(aukitURL)
-  if aukitResponse then
-    local aukitData = aukitResponse.readAll()
-    aukitResponse.close()
-
-    local aukitFile = fs.open(aukitPath, "w")
-    aukitFile.write(aukitData)
-    aukitFile.close()
-    print("AUKit téléchargé avec succès.")
-  else
-    error("Erreur lors du téléchargement de AUKit.")
-  end
+  shell.run("wget", "https://github.com/MCJack123/AUKit/raw/master/aukit.lua", aukitPath)
 end
 
 if not fileExists(austreamPath) then
-  print("Téléchargement de AUStream...")
-  local austreamURL = "https://github.com/MCJack123/AUKit/raw/master/austream.lua"
-  local austreamResponse = http.get(austreamURL)
-  if austreamResponse then
-    local austreamData = austreamResponse.readAll()
-    austreamResponse.close()
-
-    local austreamFile = fs.open(austreamPath, "w")
-    austreamFile.write(austreamData)
-    austreamFile.close()
-    print("AUStream téléchargé avec succès.")
-  else
-    error("Erreur lors du téléchargement de AUStream.")
-  end
+  shell.run("wget", "https://github.com/MCJack123/AUKit/raw/master/austream.lua", austreamPath)
 end
 
 -- Chargement des bibliothèques AUKit et AUStream
@@ -59,7 +33,7 @@ if response then
     end
 
     local function playMusic(title, musicURL)
-      shell.run("austream.lua", musicURL)
+      shell.run(austreamPath, musicURL)
     end
 
     local function displayMusicMenu()
