@@ -1,27 +1,4 @@
-local aukitPath = "aukit.lua"
-local austreamPath = "austream.lua"
-local upgradePath = "upgrade"
-
--- Fonction pour vérifier si un fichier existe
-local function fileExists(path)
-  return fs.exists(path) and not fs.isDir(path)
-end
-
--- Vérification et téléchargement des fichiers AUKit et AUStream
-if not fileExists(aukitPath) then
-  shell.run("wget", "https://github.com/MCJack123/AUKit/raw/master/aukit.lua", aukitPath)
-end
-
-if not fileExists(austreamPath) then
-  shell.run("wget", "https://github.com/MCJack123/AUKit/raw/master/austream.lua", austreamPath)
-end
-
--- Vérification et téléchargement du fichier "upgrade"
-if not fileExists(upgradePath) then
-  shell.run("pastebin", "get", "PvwtVW1S", upgradePath)
-end
-
-
+local austream = shell.resolveProgram("austream")
 
 local playlistURL = "https://raw.githubusercontent.com/Miniprimestaff/music-cc/main/program/playlist.json"
 local response = http.get(playlistURL)
@@ -37,7 +14,7 @@ if response then
     end
 
     local function playMusic(title, musicURL)
-      shell.run(austreamPath, musicURL)
+      shell.run(austream, musicURL)
     end
 
     local function displayMusicMenu()
@@ -55,18 +32,23 @@ if response then
       local byText = "by Dartsgame"
       local logoY = math.floor((screenHeight - logoHeight) / 2)
       local logoX = math.floor((screenWidth - #logoText) / 2)
-      term.setTextColor(colors.green)
-      term.setCursorPos(1, logoY)
-      term.write(string.rep(string.char(143), screenWidth))
-      term.setCursorPos(1, logoY + 1)
-      term.write(string.rep(" ", screenWidth))
-      term.setCursorPos(logoX, logoY + 2)
-      term.write(logoText)
-      term.setCursorPos((screenWidth - #byText) / 2 + 1, logoY + 3)
-      term.write(byText)
-      term.setCursorPos(1, logoY + 4)
-      term.write(string.rep(string.char(143), screenWidth))
-      sleep(2) -- Attente de 2 secondes
+
+      for i = 1, (screenWidth - #logoText + 1) do
+        term.clear()
+        term.setCursorPos(1, logoY)
+        term.write(string.rep(string.char(143), screenWidth))
+        term.setCursorPos(1, logoY + 1)
+        term.write(string.rep(" ", screenWidth))
+        term.setCursorPos(logoX, logoY + 2)
+        term.write(logoText)
+        term.setCursorPos((screenWidth - #byText) / 2 + 1, logoY + 3)
+        term.write(byText)
+        term.setCursorPos(1, logoY + 4)
+        term.write(string.rep(string.char(143), screenWidth))
+        sleep(0.1) -- Temps d'affichage de chaque défilement
+      end
+
+      sleep(1) -- Attente de 1 seconde avant d'afficher le menu
 
       while true do
         term.clear()
