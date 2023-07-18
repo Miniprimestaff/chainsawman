@@ -26,15 +26,20 @@ if response then
 
       -- Boot Menu
       term.clear()
-      term.setCursorPos(1, 3)
+      local screenWidth, screenHeight = term.getSize()
+      local logoHeight = 5
+      local logoText = "Spotifo"
+      local logoY = math.floor((screenHeight - logoHeight) / 2)
+      local logoX = math.floor((screenWidth - #logoText) / 2)
       term.setTextColor(colors.green)
-      term.write(string.rep(string.char(143), term.getSize()))
-      term.setCursorPos(1, 4)
-      term.write(string.rep(" ", term.getSize()))
-      term.setCursorPos((term.getSize() - 7) / 2 + 1, 4)
-      term.write("Spotifo")
-      term.setCursorPos(1, 5)
-      term.write(string.rep(string.char(143), term.getSize()))
+      term.setCursorPos(1, logoY)
+      term.write(string.rep(string.char(143), screenWidth))
+      term.setCursorPos(1, logoY + 1)
+      term.write(string.rep(" ", screenWidth))
+      term.setCursorPos(logoX, logoY + 2)
+      term.write(logoText)
+      term.setCursorPos(1, logoY + 3)
+      term.write(string.rep(string.char(143), screenWidth))
       sleep(2) -- Attente de 2 secondes
 
       while true do
@@ -46,8 +51,8 @@ if response then
         term.write(string.rep(string.char(143), term.getSize()))
         term.setCursorPos(1, 3)
         term.write(string.rep(" ", term.getSize()))
-        term.setCursorPos((term.getSize() - 7) / 2 + 1, 3)
-        term.write("Spotifo")
+        term.setCursorPos((term.getSize() - #logoText) / 2 + 1, 3)
+        term.write(logoText)
         term.setCursorPos(1, 4)
         term.write(string.rep(string.char(143), term.getSize()))
 
@@ -70,9 +75,10 @@ if response then
 
         term.setTextColor(colors.white)
         local pageText = "Page " .. currentPage .. "/" .. totalPages
-        local pageTextPos = (term.getSize() - #pageText) / 2 + 1
-        term.setCursorPos(pageTextPos, itemsPerPage + 6)
-        term.write(pageText)
+        local headerText = pageText .. " | " .. logoText
+        local headerTextPos = (term.getSize() - #headerText) / 2 + 1
+        term.setCursorPos(headerTextPos, 5)
+        term.write(headerText)
 
         term.setCursorPos(1, itemsPerPage + 7)
         term.write(string.char(17))
