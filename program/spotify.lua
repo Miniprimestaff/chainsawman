@@ -13,6 +13,8 @@ if response then
       table.insert(musicList, entry.title)
     end
 
+    local logoText = "Spotifo"
+
     local function playMusic(title, musicURL)
       shell.run(austream, musicURL)
     end
@@ -140,7 +142,6 @@ if response then
       monitor.clear()
       displayMusicMenu()
     else
-      term.setTextColor(colors.white)
       displayMusicMenu()
     end
   else
