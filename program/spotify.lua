@@ -49,7 +49,7 @@ if response then
       local totalPages = math.ceil(totalOptions / itemsPerPage)
       local selectedIndex = 1
 
-      -- Boot Menu avec animation pour le texte "Spotifo"
+      -- Boot Menu
       term.clear()
       local screenWidth, screenHeight = term.getSize()
       local logoHeight = 5
@@ -57,100 +57,86 @@ if response then
       local byText = "by Dartsgame"
       local logoY = math.floor((screenHeight - logoHeight) / 2)
       local logoX = math.floor((screenWidth - #logoText) / 2)
-
-      local logoColors = { colors.green, colors.red, colors.yellow, colors.orange }
-      local currentColorIndex = 1
-
-      local function animateLogo()
-        while true do
-          term.setTextColor(logoColors[currentColorIndex])
-          term.setCursorPos(logoX, logoY + 2)
-          term.write(logoText)
-          sleep(0.5)
-          currentColorIndex = currentColorIndex % #logoColors + 1
-        end
-      end
-
-      -- Création d'une tâche pour l'animation du logo
-      local animateTask = parallel.waitForAny(animateLogo)
-
       term.setTextColor(colors.green)
       term.setCursorPos(1, logoY)
       term.write(string.rep(string.char(143), screenWidth))
       term.setCursorPos(1, logoY + 1)
       term.write(string.rep(" ", screenWidth))
+      term.setCursorPos(logoX, logoY + 2)
+      term.write(logoText)
+      term.setCursorPos((screenWidth - #byText) / 2 + 1, logoY + 3)
+      term.write(byText)
       term.setCursorPos(1, logoY + 4)
       term.write(string.rep(string.char(143), screenWidth))
-      sleep(2) -- Attente de 2 secondes pour l'animation
+      sleep(2) -- Attente de 2 secondes
 
-      -- Arrêt de l'animation du logo
-      parallel.cancel(animateTask)
+      while true do
+        term.clear()
+        term.setCursorPos(1, 3)
 
-      term.clear()
-      term.setCursorPos(1, 3)
+        term.setTextColor(colors.green)
+        term.setCursorPos(1, 2)
+        term.write(string.rep(string.char(143), term.getSize()))
+        term.setCursorPos(1, 3)
+        term.write(string.rep(" ", term.getSize()))
+        term.setCursorPos((term.getSize() - #logoText) / 2 + 1, 3)
+        term.write(logoText)
+        term.setCursorPos(1, 4)
+        term.write(string.rep(string.char(143), term.getSize()))
 
-      term.setTextColor(colors.green)
-      term.setCursorPos(1, 2)
-      term.write(string.rep(string.char(143), term.getSize()))
-      term.setCursorPos(1, 3)
-      term.write(string.rep(" ", term.getSize()))
-      term.setCursorPos((term.getSize() - #logoText) / 2 + 1, 3)
-      term.write(logoText)
-      term.setCursorPos(1, 4)
-      term.write(string.rep(string.char(143), term.getSize()))
+        local startIndex = (currentPage - 1) * itemsPerPage + 1
+        local endIndex = math.min(startIndex + itemsPerPage - 1, totalOptions)
 
-      local startIndex = (currentPage - 1) * itemsPerPage + 1
-      local endIndex = math.min(startIndex + itemsPerPage - 1, totalOptions)
+        for i = startIndex, endIndex do
+          local optionIndex = i - startIndex + 1
+          local option = musicList[i]
 
-      for i = startIndex, endIndex do
-        local optionIndex = i - startIndex + 1
-        local option = musicList[i]
+          if optionIndex == selectedIndex then
+            term.setTextColor(colors.green)
+            option = option .. " "
+          else
+            term.setTextColor(colors.gray)
+          end
 
-        if optionIndex == selectedIndex then
-          term.setTextColor(colors.green)
-          option = option .. " "
-        else
-          term.setTextColor(colors.gray)
+          print(optionIndex, " [" .. option .. "]")
         end
 
-        print(optionIndex, " [" .. option .. "]")
-      end
+        term.setTextColor(colors.white)
+        local pageText = currentPage .. "/" .. totalPages
+        local totalText = "Titres " .. totalOptions
+        local headerText = logoText .. "  " .. pageText .. "  " .. totalText
+        local headerTextPos = (term.getSize() - #headerText) / 2 + 1
+        term.setCursorPos(headerTextPos, 3)
+        term.write(headerText)
 
-      term.setTextColor(colors.white)
-      local pageText = currentPage .. "/" .. totalPages
-      local totalText = "Titres " .. totalOptions
-      local headerText = logoText .. "  " .. pageText .. "  " .. totalText
-      local headerTextPos = (term.getSize() - #headerText) / 2 + 1
-      term.setCursorPos(headerTextPos, 3)
-      term.write(headerText)
+        term.setCursorPos(1, itemsPerPage + 7)
+        term.write(string.char(17))
+        term.setCursorPos(term.getSize(), itemsPerPage + 7)
+        term.write(string.char(16))
 
-      term.setCursorPos(1, itemsPerPage + 7)
-      term.write(string.char(17))
-      term.setCursorPos(term.getSize(), itemsPerPage + 7)
-      term.write(string.char(16))
+        local _, key = os.pullEvent("key")
 
-      local _, key = os.pullEvent("key")
-
-      if key == keys.up then
-        selectedIndex = selectedIndex - 1
-        if selectedIndex < 1 then
-          selectedIndex = endIndex - startIndex + 1
+        if key == keys.up then
+          selectedIndex = selectedIndex - 1
+          if selectedIndex < 1 then
+            selectedIndex = endIndex - startIndex + 1
+          end
+        elseif key == keys.down then
+          selectedIndex = selectedIndex + 1
+          if selectedIndex > endIndex - startIndex + 1 then
+            selectedIndex = 1
+          end
+        elseif key == keys.left and currentPage > 1 then
+          currentPage = currentPage - 1
+          selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
+        elseif key == keys.right and currentPage < totalPages then
+          currentPage = currentPage + 1
+          selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
+        elseif key == keys.enter then
+          local selectedOption = startIndex + selectedIndex - 1
+          local selectedMusic = playlist[selectedOption]
+          playMusic(selectedMusic.title, selectedMusic.link)
         end
-      elseif key == keys.down then
-        selectedIndex = selectedIndex + 1
-        if selectedIndex > endIndex - startIndex + 1 then
-          selectedIndex = 1
-        end
-      elseif key == keys.left and currentPage > 1 then
-        currentPage = currentPage - 1
-        selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
-      elseif key == keys.right and currentPage < totalPages then
-        currentPage = currentPage + 1
-        selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
-      elseif key == keys.enter then
-        local selectedOption = startIndex + selectedIndex - 1
-        local selectedMusic = playlist[selectedOption]
-        playMusic(selectedMusic.title, selectedMusic.link)
       end
     end
 
