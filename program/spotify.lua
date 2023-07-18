@@ -56,8 +56,22 @@ if response then
         end
 
         term.setTextColor(colors.white)
+
         local pageText = "Page " .. currentPage .. "/" .. totalPages
-        local pageTextPos = (term.getSize() - #pageText) / 2 + 1
+        local pageTextPos
+        if term.isColor() then
+          -- Calcul de la position du texte de la page pour les ordinateurs en couleur
+          pageTextPos = (term.getSize() - #pageText) / 2 + 1
+        else
+          -- Calcul de la position du texte de la page pour les ordinateurs en mode texte
+          pageTextPos = (term.getSize() - #pageText) / 2 + 1
+        end
+
+        -- Vérification de la position du texte de la page pour éviter la superposition avec la liste de musique
+        if pageTextPos < itemsPerPage + 7 then
+          pageTextPos = itemsPerPage + 7
+        end
+
         term.setCursorPos(pageTextPos, itemsPerPage + 6)
         term.write(pageText)
 
