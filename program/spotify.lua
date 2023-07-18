@@ -24,46 +24,30 @@ if response then
       local totalPages = math.ceil(totalOptions / itemsPerPage)
       local selectedIndex = 1
 
-      -- Boot Menu
-      term.clear()
-      local screenWidth, screenHeight = term.getSize()
-      local logoHeight = 5
-      local logoText = "Spotifo"
-      local byText = "by Dartsgame"
-      local logoY = math.floor((screenHeight - logoHeight) / 2)
-      local logoX = math.floor((screenWidth - #logoText) / 2)
+      -- Vérification de la présence d'un moniteur
+      local hasMonitor = peripheral.isPresent("monitor")
+      local monitor
 
-      for i = 1, (screenWidth - #logoText + 1) do
-        term.clear()
-        term.setCursorPos(1, logoY)
-        term.write(string.rep(string.char(143), screenWidth))
-        term.setCursorPos(1, logoY + 1)
-        term.write(string.rep(" ", screenWidth))
-        term.setCursorPos(logoX, logoY + 2)
-        term.write(logoText)
-        term.setCursorPos((screenWidth - #byText) / 2 + 1, logoY + 3)
-        term.write(byText)
-        term.setCursorPos(1, logoY + 4)
-        term.write(string.rep(string.char(143), screenWidth))
-        sleep(0.1) -- Temps d'affichage de chaque défilement
+      if hasMonitor then
+        monitor = peripheral.find("monitor")
+        monitor.clear()
+        monitor.setCursorPos(1, 3)
+        monitor.setTextColor(colors.green)
+        monitor.write(string.rep(" ", monitor.getSize()))
+        monitor.setCursorPos((monitor.getSize() - #logoText) / 2 + 1, 3)
+        monitor.write(logoText)
+        monitor.setTextColor(colors.white)
       end
 
-      sleep(1) -- Attente de 1 seconde avant d'afficher le menu
+      term.clear()
+      term.setCursorPos(1, 3)
+      term.setTextColor(colors.green)
+      term.write(string.rep(" ", term.getSize()))
+      term.setCursorPos((term.getSize() - #logoText) / 2 + 1, 3)
+      term.write(logoText)
+      term.setTextColor(colors.white)
 
-      while true do
-        term.clear()
-        term.setCursorPos(1, 3)
-
-        term.setTextColor(colors.green)
-        term.setCursorPos(1, 2)
-        term.write(string.rep(string.char(143), term.getSize()))
-        term.setCursorPos(1, 3)
-        term.write(string.rep(" ", term.getSize()))
-        term.setCursorPos((term.getSize() - #logoText) / 2 + 1, 3)
-        term.write(logoText)
-        term.setCursorPos(1, 4)
-        term.write(string.rep(string.char(143), term.getSize()))
-
+      local function drawMenu()
         local startIndex = (currentPage - 1) * itemsPerPage + 1
         local endIndex = math.min(startIndex + itemsPerPage - 1, totalOptions)
 
@@ -79,21 +63,45 @@ if response then
           end
 
           print(optionIndex, " [" .. option .. "]")
+          if hasMonitor then
+            monitor.setTextColor(colors.gray)
+            monitor.setCursorPos(1, i - startIndex + 3)
+            monitor.write(optionIndex .. " [" .. option .. "]")
+          end
         end
+      end
 
+      local function drawHeader()
+        term.setCursorPos(1, 2)
+        term.setTextColor(colors.green)
+        term.write(string.rep(" ", term.getSize()))
+        term.setCursorPos((term.getSize() - #logoText) / 2 + 1, 2)
+        term.write(logoText)
         term.setTextColor(colors.white)
-        local pageText = currentPage .. "/" .. totalPages
-        local totalText = "Titres " .. totalOptions
-        local headerText = logoText .. "  " .. pageText .. "  " .. totalText
-        local headerTextPos = (term.getSize() - #headerText) / 2 + 1
-        term.setCursorPos(headerTextPos, 3)
-        term.write(headerText)
 
-        term.setCursorPos(1, itemsPerPage + 7)
-        term.write(string.char(17))
-        term.setCursorPos(term.getSize(), itemsPerPage + 7)
-        term.write(string.char(16))
+        if hasMonitor then
+          monitor.setCursorPos(1, 2)
+          monitor.setTextColor(colors.green)
+          monitor.write(string.rep(" ", monitor.getSize()))
+          monitor.setCursorPos((monitor.getSize() - #logoText) / 2 + 1, 2)
+          monitor.write(logoText)
+          monitor.setTextColor(colors.white)
+        end
+      end
 
+      drawMenu()
+      drawHeader()
+
+      local function clearScreen()
+        term.clear()
+        term.setCursorPos(1, 1)
+        if hasMonitor then
+          monitor.clear()
+          monitor.setCursorPos(1, 1)
+        end
+      end
+
+      while true do
         local _, key = os.pullEvent("key")
 
         if key == keys.up then
@@ -117,10 +125,24 @@ if response then
           local selectedMusic = playlist[selectedOption]
           playMusic(selectedMusic.title, selectedMusic.link)
         end
+
+        clearScreen()
+        drawMenu()
+        drawHeader()
       end
     end
 
-    displayMusicMenu()
+    if peripheral.isPresent("monitor") then
+      local monitor = peripheral.find("monitor")
+      monitor.setTextScale(1)
+      monitor.setTextColor(colors.white)
+      monitor.setBackgroundColor(colors.black)
+      monitor.clear()
+      displayMusicMenu()
+    else
+      term.setTextColor(colors.white)
+      displayMusicMenu()
+    end
   else
     print("Erreur de parsing du fichier de la liste de lecture.")
   end
