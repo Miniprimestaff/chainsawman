@@ -78,7 +78,8 @@ if response then
 
         term.setTextColor(colors.white)
         local pageText = "Page " .. currentPage .. "/" .. totalPages
-        local headerText = logoText
+        local totalText = totalOptions .. " titres"
+        local headerText = logoText .. "  " .. totalText
         local headerTextPos = (term.getSize() - #headerText) / 2 + 1
         term.setCursorPos(headerTextPos, 3)
         term.write(headerText)
