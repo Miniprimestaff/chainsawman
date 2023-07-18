@@ -1,4 +1,29 @@
-local austream = shell.resolveProgram("austream")
+local aukitPath = "aukit.lua"
+local austreamPath = "austream.lua"
+local upgradePath = "upgrade"
+
+-- Fonction pour vérifier si un fichier existe
+local function fileExists(path)
+  return fs.exists(path) and not fs.isDir(path)
+end
+
+-- Vérification et téléchargement des fichiers AUKit et AUStream
+if not fileExists(aukitPath) then
+  shell.run("wget", "https://github.com/MCJack123/AUKit/raw/master/aukit.lua", aukitPath)
+end
+
+if not fileExists(austreamPath) then
+  shell.run("wget", "https://github.com/MCJack123/AUKit/raw/master/austream.lua", austreamPath)
+end
+
+-- Vérification et téléchargement du fichier "upgrade"
+if not fileExists(upgradePath) then
+  shell.run("pastebin", "get", "PvwtVW1S", upgradePath)
+end
+
+-- Chargement des bibliothèques AUKit et AUStream
+os.loadAPI(aukitPath)
+os.loadAPI(austreamPath)
 
 local playlistURL = "https://raw.githubusercontent.com/Miniprimestaff/music-cc/main/program/playlist.json"
 local response = http.get(playlistURL)
@@ -13,10 +38,8 @@ if response then
       table.insert(musicList, entry.title)
     end
 
-    local logoText = "Spotifo"
-
     local function playMusic(title, musicURL)
-      shell.run(austream, musicURL)
+      shell.run(austreamPath, musicURL)
     end
 
     local function displayMusicMenu()
@@ -26,124 +49,112 @@ if response then
       local totalPages = math.ceil(totalOptions / itemsPerPage)
       local selectedIndex = 1
 
-      -- Vérification de la présence d'un moniteur
-      local hasMonitor = peripheral.isPresent("monitor")
-      local monitor
+      -- Boot Menu avec animation pour le texte "Spotifo"
+      term.clear()
+      local screenWidth, screenHeight = term.getSize()
+      local logoHeight = 5
+      local logoText = "Spotifo"
+      local byText = "by Dartsgame"
+      local logoY = math.floor((screenHeight - logoHeight) / 2)
+      local logoX = math.floor((screenWidth - #logoText) / 2)
 
-      if hasMonitor then
-        monitor = peripheral.find("monitor")
-        monitor.clear()
-        monitor.setCursorPos(1, 3)
-        monitor.setTextColor(colors.green)
-        monitor.write(string.rep(" ", monitor.getSize()))
-        monitor.setCursorPos((monitor.getSize() - #logoText) / 2 + 1, 3)
-        monitor.write(logoText)
-        monitor.setTextColor(colors.white)
+      local logoColors = { colors.green, colors.red, colors.yellow, colors.orange }
+      local currentColorIndex = 1
+
+      local function animateLogo()
+        while true do
+          term.setTextColor(logoColors[currentColorIndex])
+          term.setCursorPos(logoX, logoY + 2)
+          term.write(logoText)
+          sleep(0.5)
+          currentColorIndex = currentColorIndex % #logoColors + 1
+        end
       end
+
+      -- Création d'une tâche pour l'animation du logo
+      local animateTask = parallel.waitForAny(animateLogo)
+
+      term.setTextColor(colors.green)
+      term.setCursorPos(1, logoY)
+      term.write(string.rep(string.char(143), screenWidth))
+      term.setCursorPos(1, logoY + 1)
+      term.write(string.rep(" ", screenWidth))
+      term.setCursorPos(1, logoY + 4)
+      term.write(string.rep(string.char(143), screenWidth))
+      sleep(2) -- Attente de 2 secondes pour l'animation
+
+      -- Arrêt de l'animation du logo
+      parallel.cancel(animateTask)
 
       term.clear()
       term.setCursorPos(1, 3)
+
       term.setTextColor(colors.green)
+      term.setCursorPos(1, 2)
+      term.write(string.rep(string.char(143), term.getSize()))
+      term.setCursorPos(1, 3)
       term.write(string.rep(" ", term.getSize()))
       term.setCursorPos((term.getSize() - #logoText) / 2 + 1, 3)
       term.write(logoText)
+      term.setCursorPos(1, 4)
+      term.write(string.rep(string.char(143), term.getSize()))
+
+      local startIndex = (currentPage - 1) * itemsPerPage + 1
+      local endIndex = math.min(startIndex + itemsPerPage - 1, totalOptions)
+
+      for i = startIndex, endIndex do
+        local optionIndex = i - startIndex + 1
+        local option = musicList[i]
+
+        if optionIndex == selectedIndex then
+          term.setTextColor(colors.green)
+          option = option .. " "
+        else
+          term.setTextColor(colors.gray)
+        end
+
+        print(optionIndex, " [" .. option .. "]")
+      end
+
       term.setTextColor(colors.white)
+      local pageText = currentPage .. "/" .. totalPages
+      local totalText = "Titres " .. totalOptions
+      local headerText = logoText .. "  " .. pageText .. "  " .. totalText
+      local headerTextPos = (term.getSize() - #headerText) / 2 + 1
+      term.setCursorPos(headerTextPos, 3)
+      term.write(headerText)
 
-      local function drawMenu()
-        local startIndex = (currentPage - 1) * itemsPerPage + 1
-        local endIndex = math.min(startIndex + itemsPerPage - 1, totalOptions)
+      term.setCursorPos(1, itemsPerPage + 7)
+      term.write(string.char(17))
+      term.setCursorPos(term.getSize(), itemsPerPage + 7)
+      term.write(string.char(16))
 
-        for i = startIndex, endIndex do
-          local optionIndex = i - startIndex + 1
-          local option = musicList[i]
+      local _, key = os.pullEvent("key")
 
-          if optionIndex == selectedIndex then
-            term.setTextColor(colors.green)
-            option = option .. " "
-          else
-            term.setTextColor(colors.gray)
-          end
-
-          print(optionIndex, " [" .. option .. "]")
-          if hasMonitor then
-            monitor.setTextColor(colors.gray)
-            monitor.setCursorPos(1, i - startIndex + 3)
-            monitor.write(optionIndex .. " [" .. option .. "]")
-          end
+      if key == keys.up then
+        selectedIndex = selectedIndex - 1
+        if selectedIndex < 1 then
+          selectedIndex = endIndex - startIndex + 1
         end
-      end
-
-      local function drawHeader()
-        term.setCursorPos(1, 2)
-        term.setTextColor(colors.green)
-        term.write(string.rep(" ", term.getSize()))
-        term.setCursorPos((term.getSize() - #logoText) / 2 + 1, 2)
-        term.write(logoText)
-        term.setTextColor(colors.white)
-
-        if hasMonitor then
-          monitor.setCursorPos(1, 2)
-          monitor.setTextColor(colors.green)
-          monitor.write(string.rep(" ", monitor.getSize()))
-          monitor.setCursorPos((monitor.getSize() - #logoText) / 2 + 1, 2)
-          monitor.write(logoText)
-          monitor.setTextColor(colors.white)
+      elseif key == keys.down then
+        selectedIndex = selectedIndex + 1
+        if selectedIndex > endIndex - startIndex + 1 then
+          selectedIndex = 1
         end
-      end
-
-      drawMenu()
-      drawHeader()
-
-      local function clearScreen()
-        term.clear()
-        term.setCursorPos(1, 1)
-        if hasMonitor then
-          monitor.clear()
-          monitor.setCursorPos(1, 1)
-        end
-      end
-
-      while true do
-        local _, key = os.pullEvent("key")
-
-        if key == keys.up then
-          selectedIndex = selectedIndex - 1
-          if selectedIndex < 1 then
-            selectedIndex = endIndex - startIndex + 1
-          end
-        elseif key == keys.down then
-          selectedIndex = selectedIndex + 1
-          if selectedIndex > endIndex - startIndex + 1 then
-            selectedIndex = 1
-          end
-        elseif key == keys.left and currentPage > 1 then
-          currentPage = currentPage - 1
-          selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
-        elseif key == keys.right and currentPage < totalPages then
-          currentPage = currentPage + 1
-          selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
-        elseif key == keys.enter then
-          local selectedOption = startIndex + selectedIndex - 1
-          local selectedMusic = playlist[selectedOption]
-          playMusic(selectedMusic.title, selectedMusic.link)
-        end
-
-        clearScreen()
-        drawMenu()
-        drawHeader()
+      elseif key == keys.left and currentPage > 1 then
+        currentPage = currentPage - 1
+        selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
+      elseif key == keys.right and currentPage < totalPages then
+        currentPage = currentPage + 1
+        selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
+      elseif key == keys.enter then
+        local selectedOption = startIndex + selectedIndex - 1
+        local selectedMusic = playlist[selectedOption]
+        playMusic(selectedMusic.title, selectedMusic.link)
       end
     end
 
-    if peripheral.isPresent("monitor") then
-      local monitor = peripheral.find("monitor")
-      monitor.setTextScale(1)
-      monitor.setTextColor(colors.white)
-      monitor.setBackgroundColor(colors.black)
-      monitor.clear()
-      displayMusicMenu()
-    else
-      displayMusicMenu()
-    end
+    displayMusicMenu()
   else
     print("Erreur de parsing du fichier de la liste de lecture.")
   end
