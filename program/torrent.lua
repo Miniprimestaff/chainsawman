@@ -58,16 +58,25 @@ if playlistData and darkPlaylistData then
       local totalPages = math.ceil(totalOptions / itemsPerPage)
       local selectedIndex = 1
 
-      -- Boot Menu
       term.clear()
-      local screenWidth, screenHeight = term.getSize()
-      local logoHeight = 5
-      local logoText = "Spotifo"
-      local byText = "by Dartsgame"
-      local logoY = math.floor((screenHeight - logoHeight) / 2)
-      local logoX = math.floor((screenWidth - #logoText) / 2)
+      term.setCursorPos(1, 1)
+
+      if not isDarkMode then
+        -- Afficher le texte "Spotifo" et "by Dartsgame" en vert sans boot menu
+        term.setTextColor(colors.green)
+        term.write("Spotifo\n")
+        term.setTextColor(colors.gray)
+        term.write("by Dartsgame\n")
+        sleep(3)
+      else
+        -- Afficher le texte en rouge pour le mode alternatif (easter egg)
+        term.setTextColor(colors.red)
+        term.write("Spotifo (Mode alternatif)\n")
+        term.write("by Dartsgame (Version rouge)\n")
+      end
 
       while true do
+        -- Vider l'écran avant d'afficher le menu
         term.clear()
         term.setCursorPos(1, 3)
 
@@ -84,8 +93,8 @@ if playlistData and darkPlaylistData then
         term.write(string.rep(string.char(143), term.getSize()))
         term.setCursorPos(1, 3)
         term.write(string.rep(" ", term.getSize()))
-        term.setCursorPos((term.getSize() - #logoText) / 2 + 1, 3)
-        term.write(logoText)
+        term.setCursorPos((term.getSize() - 7) / 2 + 1, 3)
+        term.write("Spotifo")
         term.setCursorPos(1, 4)
         term.write(string.rep(string.char(143), term.getSize()))
 
@@ -109,7 +118,7 @@ if playlistData and darkPlaylistData then
         term.setTextColor(colors.white)
         local pageText = currentPage .. "/" .. totalPages
         local totalText = "Titres " .. totalOptions
-        local headerText = logoText .. "  " .. pageText .. "  " .. totalText
+        local headerText = "Spotifo  " .. pageText .. "  " .. totalText
         local headerTextPos = (term.getSize() - #headerText) / 2 + 1
         term.setCursorPos(headerTextPos, 3)
         term.write(headerText)
