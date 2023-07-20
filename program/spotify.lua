@@ -21,9 +21,6 @@ if not fileExists(upgradePath) then
   shell.run("pastebin", "get", "PvwtVW1S", upgradePath)
 end
 
-local aukit = require("aukit")
-local austream = shell.resolveProgram("austream")
-
 local playlistURL = "https://raw.githubusercontent.com/Miniprimestaff/music-cc/main/program/playlist.json"
 local response = http.get(playlistURL)
 if response then
@@ -38,7 +35,7 @@ if response then
     end
 
     local function playMusic(title, musicURL)
-      shell.run(austream, musicURL)
+      shell.run(austreamPath, musicURL)
     end
 
     local function displayMusicMenu()
@@ -47,9 +44,6 @@ if response then
       local totalOptions = #musicList
       local totalPages = math.ceil(totalOptions / itemsPerPage)
       local selectedIndex = 1
-
-      local secretCode = ""
-      local easterEggMode = false
 
       -- Boot Menu
       term.clear()
@@ -117,98 +111,27 @@ if response then
         term.write(string.char(16))
 
         local _, key = os.pullEvent("key")
-        local keyName = keys.getName(key)
 
-        if keyName == "b" or keyName == "a" or keyName == "t" or keyName == "m" or keyName == "n" then
-          -- Ajouter le caractère de la touche pressée à la chaîne secrète
-          secretCode = secretCode .. keyName
-
-          -- Vérifier si la chaîne secrète correspond au code caché (b-a-t-m-a-n)
-          if secretCode == "batman" then
-            easterEggMode = true
-            -- Changer ici la couleur de fond en violet pour l'easter egg
-            term.setBackgroundColor(colors.purple)
-            term.clear()
-            -- Charger la playlist alternative depuis le fichier "playlistdark.json"
-            local playlistURLDark = "https://raw.githubusercontent.com/Miniprimestaff/music-cc/main/program/playlistdark.json"
-            local responseDark = http.get(playlistURLDark)
-            if responseDark then
-              local playlistDataDark = responseDark.readAll()
-              responseDark.close()
-              success, playlist = pcall(textutils.unserializeJSON, playlistDataDark)
-              if success and type(playlist) == "table" then
-                musicList = {}
-                for _, entry in ipairs(playlist) do
-                  table.insert(musicList, entry.title)
-                end
-              else
-                print("Erreur de parsing du fichier de la liste de lecture alternative.")
-                return
-              end
-            else
-              print("Erreur lors du téléchargement du fichier de la liste de lecture alternative.")
-              return
-            end
-            -- Réinitialiser la chaîne secrète après un court délai
-            os.sleep(0.5)
-            secretCode = ""
+        if key == keys.up then
+          selectedIndex = selectedIndex - 1
+          if selectedIndex < 1 then
+            selectedIndex = endIndex - startIndex + 1
           end
-        else
-          secretCode = ""
-        end
-
-        if easterEggMode then
-          -- Utiliser la playlist alternative pour le mode easter egg
-          if key == keys.up then
-            selectedIndex = selectedIndex - 1
-            if selectedIndex < 1 then
-              selectedIndex = endIndex - startIndex + 1
-            end
-          elseif key == keys.down then
-            selectedIndex = selectedIndex + 1
-            if selectedIndex > endIndex - startIndex + 1 then
-              selectedIndex = 1
-            end
-          elseif key == keys.left and currentPage > 1 then
-            currentPage = currentPage - 1
-            selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
-          elseif key == keys.right and currentPage < totalPages then
-            currentPage = currentPage + 1
-            selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
-          elseif key == keys.enter then
-            local selectedOption = startIndex + selectedIndex - 1
-            local selectedMusic = playlist[selectedOption]
-            playMusic(selectedMusic.title, selectedMusic.link)
+        elseif key == keys.down then
+          selectedIndex = selectedIndex + 1
+          if selectedIndex > endIndex - startIndex + 1 then
+            selectedIndex = 1
           end
-        else
-          -- Utiliser la playlist normale pour le mode normal
-          if key == keys.up then
-            selectedIndex = selectedIndex - 1
-            if selectedIndex < 1 then
-              selectedIndex = totalOptions
-            end
-          elseif key == keys.down then
-            selectedIndex = selectedIndex + 1
-            if selectedIndex > totalOptions then
-              selectedIndex = 1
-            end
-          elseif key == keys.left then
-            currentPage = currentPage - 1
-            if currentPage < 1 then
-              currentPage = totalPages
-            end
-            selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
-          elseif key == keys.right then
-            currentPage = currentPage + 1
-            if currentPage > totalPages then
-              currentPage = 1
-            end
-            selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
-          elseif key == keys.enter then
-            local selectedOption = startIndex + selectedIndex - 1
-            local selectedMusic = playlist[selectedOption]
-            playMusic(selectedMusic.title, selectedMusic.link)
-          end
+        elseif key == keys.left and currentPage > 1 then
+          currentPage = currentPage - 1
+          selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
+        elseif key == keys.right and currentPage < totalPages then
+          currentPage = currentPage + 1
+          selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
+        elseif key == keys.enter then
+          local selectedOption = startIndex + selectedIndex - 1
+          local selectedMusic = playlist[selectedOption]
+          playMusic(selectedMusic.title, selectedMusic.link)
         end
       end
     end
