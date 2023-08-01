@@ -2,12 +2,10 @@ local aukitPath = "aukit.lua"
 local austreamPath = "austream.lua"
 local upgradePath = "upgrade"
 
--- Fonction pour vérifier si un fichier existe
 local function fileExists(path)
   return fs.exists(path) and not fs.isDir(path)
 end
 
--- Vérification et téléchargement des fichiers AUKit et AUStream
 if not fileExists(aukitPath) then
   shell.run("wget", "https://github.com/MCJack123/AUKit/raw/master/aukit.lua", aukitPath)
 end
@@ -16,19 +14,39 @@ if not fileExists(austreamPath) then
   shell.run("wget", "https://github.com/MCJack123/AUKit/raw/master/austream.lua", austreamPath)
 end
 
--- Vérification et téléchargement du fichier "upgrade"
 if not fileExists(upgradePath) then
   shell.run("pastebin", "get", "PvwtVW1S", upgradePath)
 end
 
+local playlistFile = "playlist.json"
 local playlistURL = "https://raw.githubusercontent.com/Miniprimestaff/music-cc/main/program/playlist.json"
 local response = http.get(playlistURL)
 if response then
   local playlistData = response.readAll()
   response.close()
 
-  local success, playlist = pcall(textutils.unserializeJSON, playlistData)
-  if success and type(playlist) == "table" then
+  local success, onlinePlaylist = pcall(textutils.unserializeJSON, playlistData)
+  if success and type(onlinePlaylist) == "table" then
+    local playlist = {}
+    if fileExists(playlistFile) then
+      local fileHandle = fs.open(playlistFile, "r")
+      local playlistData = fileHandle.readAll()
+      fileHandle.close()
+      playlist = textutils.unserializeJSON(playlistData)
+    else
+      local fileHandle = fs.open(playlistFile, "w")
+      fileHandle.write(textutils.serializeJSON(playlist))
+      fileHandle.close()
+    end
+
+    for _, entry in ipairs(onlinePlaylist) do
+      table.insert(playlist, entry)
+    end
+
+    local fileHandle = fs.open(playlistFile, "w")
+    fileHandle.write(textutils.serializeJSON(playlist))
+    fileHandle.close()
+
     local musicList = {}
     for _, entry in ipairs(playlist) do
       table.insert(musicList, entry.title)
@@ -45,7 +63,6 @@ if response then
       local totalPages = math.ceil(totalOptions / itemsPerPage)
       local selectedIndex = 1
 
-      -- Boot Menu
       term.clear()
       local screenWidth, screenHeight = term.getSize()
       local logoHeight = 5
@@ -64,7 +81,7 @@ if response then
       term.write(byText)
       term.setCursorPos(1, logoY + 4)
       term.write(string.rep(string.char(143), screenWidth))
-      sleep(2) -- Attente de 2 secondes
+      sleep(2)
 
       while true do
         term.clear()
@@ -138,8 +155,8 @@ if response then
 
     displayMusicMenu()
   else
-    print("Erreur de parsing du fichier de la liste de lecture.")
+    print("Erreur de parsing du fichier de la liste de lecture en ligne.")
   end
 else
-  print("Erreur lors du téléchargement du fichier de la liste de lecture.")
+  print("Erreur lors du téléchargement du fichier de la liste de lecture en ligne.")
 end
