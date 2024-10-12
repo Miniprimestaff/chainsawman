@@ -6,6 +6,7 @@ local function fileExists(path)
   return fs.exists(path) and not fs.isDir(path)
 end
 
+-- Télécharger les fichiers nécessaires si ils n'existent pas déjà
 if not fileExists(aukitPath) then
   shell.run("wget", "https://github.com/MCJack123/AUKit/raw/master/aukit.lua", aukitPath)
 end
@@ -18,9 +19,11 @@ if not fileExists(upgradePath) then
   shell.run("pastebin", "get", "PvwtVW1S", upgradePath)
 end
 
+-- Télécharger la playlist JSON en ligne
 local playlistFile = "playlist.json"
 local playlistURL = "https://raw.githubusercontent.com/Miniprimestaff/music-cc/main/program/playlist.json"
 local response = http.get(playlistURL)
+
 if response then
   local playlistData = response.readAll()
   response.close()
@@ -28,21 +31,25 @@ if response then
   local success, onlinePlaylist = pcall(textutils.unserializeJSON, playlistData)
   if success and type(onlinePlaylist) == "table" then
     local playlist = {}
+
+    -- Charger ou créer une playlist locale
     if fileExists(playlistFile) then
       local fileHandle = fs.open(playlistFile, "r")
-      local playlistData = fileHandle.readAll()
+      local localPlaylistData = fileHandle.readAll()
       fileHandle.close()
-      playlist = textutils.unserializeJSON(playlistData)
+      playlist = textutils.unserializeJSON(localPlaylistData)
     else
       local fileHandle = fs.open(playlistFile, "w")
       fileHandle.write(textutils.serializeJSON(playlist))
       fileHandle.close()
     end
 
+    -- Ajouter la playlist en ligne à la locale
     for _, entry in ipairs(onlinePlaylist) do
       table.insert(playlist, entry)
     end
 
+    -- Sauvegarder la nouvelle playlist locale
     local fileHandle = fs.open(playlistFile, "w")
     fileHandle.write(textutils.serializeJSON(playlist))
     fileHandle.close()
@@ -52,10 +59,12 @@ if response then
       table.insert(musicList, entry.title)
     end
 
+    -- Fonction pour lire la musique avec austream
     local function playMusic(title, musicURL)
       shell.run(austreamPath, musicURL)
     end
 
+    -- Affichage du menu de sélection de musique
     local function displayMusicMenu()
       local itemsPerPage = 6
       local currentPage = 1
@@ -63,40 +72,21 @@ if response then
       local totalPages = math.ceil(totalOptions / itemsPerPage)
       local selectedIndex = 1
 
-      term.clear()
-      local screenWidth, screenHeight = term.getSize()
-      local logoHeight = 5
-      local logoText = "Spotifo"
-      local byText = "by Dartsgame"
-      local logoY = math.floor((screenHeight - logoHeight) / 2)
-      local logoX = math.floor((screenWidth - #logoText) / 2)
-      term.setTextColor(colors.green)
-      term.setCursorPos(1, logoY)
-      term.write(string.rep(string.char(143), screenWidth))
-      term.setCursorPos(1, logoY + 1)
-      term.write(string.rep(" ", screenWidth))
-      term.setCursorPos(logoX, logoY + 2)
-      term.write(logoText)
-      term.setCursorPos((screenWidth - #byText) / 2 + 1, logoY + 3)
-      term.write(byText)
-      term.setCursorPos(1, logoY + 4)
-      term.write(string.rep(string.char(143), screenWidth))
-      sleep(2)
-
       while true do
         term.clear()
         term.setCursorPos(1, 3)
 
+        -- Affichage du logo
+        local screenWidth, screenHeight = term.getSize()
+        local logoText = "Spotifo"
+        local byText = "by Dartsgame"
         term.setTextColor(colors.green)
-        term.setCursorPos(1, 2)
-        term.write(string.rep(string.char(143), term.getSize()))
-        term.setCursorPos(1, 3)
-        term.write(string.rep(" ", term.getSize()))
-        term.setCursorPos((term.getSize() - #logoText) / 2 + 1, 3)
+        term.setCursorPos((screenWidth - #logoText) / 2, 2)
         term.write(logoText)
-        term.setCursorPos(1, 4)
-        term.write(string.rep(string.char(143), term.getSize()))
+        term.setCursorPos((screenWidth - #byText) / 2, 3)
+        term.write(byText)
 
+        -- Affichage de la playlist
         local startIndex = (currentPage - 1) * itemsPerPage + 1
         local endIndex = math.min(startIndex + itemsPerPage - 1, totalOptions)
 
@@ -106,27 +96,19 @@ if response then
 
           if optionIndex == selectedIndex then
             term.setTextColor(colors.green)
-            option = option .. " "
           else
-            term.setTextColor(colors.gray)
+            term.setTextColor(colors.white)
           end
-
-          print(optionIndex, " [" .. option .. "]")
+          print(optionIndex .. ". " .. option)
         end
 
+        -- Affichage du footer avec la page actuelle
         term.setTextColor(colors.white)
-        local pageText = currentPage .. "/" .. totalPages
-        local totalText = "Titres " .. totalOptions
-        local headerText = logoText .. "  " .. pageText .. "  " .. totalText
-        local headerTextPos = (term.getSize() - #headerText) / 2 + 1
-        term.setCursorPos(headerTextPos, 3)
-        term.write(headerText)
+        local pageText = "Page " .. currentPage .. " / " .. totalPages
+        term.setCursorPos((screenWidth - #pageText) / 2, screenHeight)
+        term.write(pageText)
 
-        term.setCursorPos(1, itemsPerPage + 7)
-        term.write(string.char(17))
-        term.setCursorPos(term.getSize(), itemsPerPage + 7)
-        term.write(string.char(16))
-
+        -- Navigation avec les flèches et sélection
         local _, key = os.pullEvent("key")
 
         if key == keys.up then
@@ -141,22 +123,22 @@ if response then
           end
         elseif key == keys.left and currentPage > 1 then
           currentPage = currentPage - 1
-          selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
+          selectedIndex = 1
         elseif key == keys.right and currentPage < totalPages then
           currentPage = currentPage + 1
-          selectedIndex = math.min(selectedIndex, endIndex - startIndex + 1)
+          selectedIndex = 1
         elseif key == keys.enter then
           local selectedOption = startIndex + selectedIndex - 1
           local selectedMusic = playlist[selectedOption]
-          playMusic(selectedMusic.title, selectedMusic.link)
+          playMusic(selectedMusic.title, selectedMusic.url)
         end
       end
     end
 
     displayMusicMenu()
   else
-    print("Erreur de parsing du fichier de la liste de lecture en ligne.")
+    print("Erreur de parsing de la playlist en ligne.")
   end
 else
-  print("Erreur lors du téléchargement du fichier de la liste de lecture en ligne.")
+  print("Erreur lors du téléchargement de la playlist.")
 end
